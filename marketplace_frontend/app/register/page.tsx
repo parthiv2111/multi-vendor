@@ -2,112 +2,234 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '@/lib/api';
+import { authAPI } from '@/lib/api';
 import Link from 'next/link';
-import { User, Mail, Lock } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Package, Store, ShoppingBag } from 'lucide-react';
 
 export default function RegisterPage() {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [role, setRole] = useState('BUYER');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+
+    const validateForm = () => {
+        if (!username || username.length < 3) {
+            setError('Username must be at least 3 characters long');
+            return false;
+        }
+        if (!email || !email.includes('@')) {
+            setError('Please enter a valid email address');
+            return false;
+        }
+        if (!password || password.length < 6) {
+            setError('Password must be at least 6 characters long');
+            return false;
+        }
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return false;
+        }
+        return true;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        if (!validateForm()) return;
+
+        setIsLoading(true);
         try {
-            await api.post('/auth/register/', {
+            await authAPI.register({
                 email,
                 username,
                 password,
+                password2: confirmPassword,
                 role
             });
-            router.push('/login');
+
+            // Registration successful, redirect to login
+            router.push('/login?message=Registration successful! Please sign in.');
         } catch (err: any) {
             console.error(err);
-            setError('Registration failed. Username or Email might be taken.');
+            const errorMessage = err.response?.data?.detail ||
+                err.response?.data?.email?.[0] ||
+                err.response?.data?.username?.[0] ||
+                'Registration failed. Please try again.';
+            setError(errorMessage);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-10 border border-gray-100">
-                <div className="text-center mb-10">
-                    <h2 className="text-3xl font-extrabold text-gray-900">Create Account</h2>
-                    <p className="mt-2 text-sm text-gray-500">Join our marketplace today</p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full">
+                {/* Logo Section */}
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-emerald-400 to-cyan-400 rounded-2xl shadow-lg shadow-emerald-500/30 mb-4">
+                        <Package className="h-8 w-8 text-black" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
+                    <p className="text-slate-400">Join MarketAI and start shopping smarter</p>
                 </div>
 
-                <form className="space-y-5" onSubmit={handleSubmit}>
-                    {error && <div className="bg-red-50 text-red-500 px-4 py-3 rounded-xl text-sm text-center">{error}</div>}
+                {/* Register Card */}
+                <div className="bg-black/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 p-8">
+                    <form className="space-y-5" onSubmit={handleSubmit}>
+                        {error && (
+                            <div className="bg-rose-500/10 border border-rose-500/30 text-rose-200 px-4 py-3 rounded-xl text-sm">
+                                {error}
+                            </div>
+                        )}
 
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <User className="h-5 w-5 text-gray-400" />
+                        <div className="space-y-5">
+                            <div>
+                                <label htmlFor="username" className="block text-sm font-semibold text-slate-200 mb-2">
+                                    Username
+                                </label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-500" />
+                                    <input
+                                        id="username"
+                                        type="text"
+                                        required
+                                        className="w-full pl-12 pr-4 py-3.5 border border-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all duration-200 bg-black/40 text-white placeholder-slate-500"
+                                        placeholder="johndoe"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-semibold text-slate-200 mb-2">
+                                    Email Address
+                                </label>
+                                <div className="relative">
+                                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-500" />
+                                    <input
+                                        id="email"
+                                        type="email"
+                                        required
+                                        className="w-full pl-12 pr-4 py-3.5 border border-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all duration-200 bg-black/40 text-white placeholder-slate-500"
+                                        placeholder="you@example.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="password" className="block text-sm font-semibold text-slate-200 mb-2">
+                                    Password
+                                </label>
+                                <div className="relative">
+                                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-500" />
+                                    <input
+                                        id="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        required
+                                        className="w-full pl-12 pr-12 py-3.5 border border-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all duration-200 bg-black/40 text-white placeholder-slate-500"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-200 mb-2">
+                                    Confirm Password
+                                </label>
+                                <div className="relative">
+                                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-500" />
+                                    <input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        required
+                                        className="w-full pl-12 pr-12 py-3.5 border border-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all duration-200 bg-black/40 text-white placeholder-slate-500"
+                                        placeholder="••••••••"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="role" className="block text-sm font-semibold text-slate-200 mb-2">
+                                    I want to
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setRole('BUYER')}
+                                        className={`relative p-4 rounded-xl border-2 transition-all duration-200 ${role === 'BUYER'
+                                            ? 'border-emerald-400/80 bg-emerald-400/10 text-emerald-200'
+                                            : 'border-slate-800 bg-black/40 text-slate-400 hover:border-slate-700'
+                                            }`}
+                                    >
+                                        <ShoppingBag className="h-6 w-6 mx-auto mb-2" />
+                                        <span className="text-sm font-medium">Buy Products</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRole('SELLER')}
+                                        className={`relative p-4 rounded-xl border-2 transition-all duration-200 ${role === 'SELLER'
+                                            ? 'border-emerald-400/80 bg-emerald-400/10 text-emerald-200'
+                                            : 'border-slate-800 bg-black/40 text-slate-400 hover:border-slate-700'
+                                            }`}
+                                    >
+                                        <Store className="h-6 w-6 mx-auto mb-2" />
+                                        <span className="text-sm font-medium">Sell Products</span>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="role" value={role} />
+                            </div>
                         </div>
-                        <input
-                            type="text"
-                            required
-                            className="input-field pl-10"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                    </div>
 
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Mail className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                            type="email"
-                            required
-                            className="input-field pl-10"
-                            placeholder="Email address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Lock className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                            type="password"
-                            required
-                            className="input-field pl-10"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
-
-                    <div>
-                        <select
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            className="input-field"
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full bg-gradient-to-r from-emerald-400 to-cyan-400 text-black py-3.5 rounded-xl font-bold hover:from-emerald-300 hover:to-cyan-300 transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                            <option value="BUYER">I want to Buy</option>
-                            <option value="SELLER">I want to Sell</option>
-                        </select>
-                    </div>
+                            {isLoading ? (
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    Create Account
+                                    <ArrowRight className="h-5 w-5" />
+                                </>
+                            )}
+                        </button>
 
-                    <button
-                        type="submit"
-                        className="w-full btn-primary py-3 mt-4"
-                    >
-                        Sign up
-                    </button>
-
-                    <div className="text-center pt-4">
-                        <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500 text-sm">
-                            Already have an account? Sign in
-                        </Link>
-                    </div>
-                </form>
+                        <div className="text-center pt-2">
+                            <Link href="/login" className="font-medium text-cyan-300 hover:text-cyan-200 text-sm transition-colors">
+                                Already have an account? <span className="font-semibold">Sign in</span>
+                            </Link>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
