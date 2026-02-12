@@ -118,7 +118,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-emerald-400 to-cyan-400 text-black py-3.5 rounded-xl font-bold hover:from-emerald-300 hover:to-cyan-300 transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+            className="w-full bg-gradient-to-r from-emerald-400 to-cyan-400 text-white py-3.5 rounded-xl font-bold hover:from-emerald-300 hover:to-cyan-300 transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

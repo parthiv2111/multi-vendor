@@ -53,27 +53,27 @@ export default function CartPage() {
     };
 
     if (loading) return (
-        <div className="flex justify-center items-center min-h-[60vh]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="min-h-screen pt-28 flex justify-center items-center bg-gradient-to-br from-black via-zinc-900 to-slate-950">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-400"></div>
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                    <ShoppingBag className="h-8 w-8 text-indigo-600" />
+        <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-slate-950 pt-28 pb-16 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+                <h1 className="text-3xl sm:text-4xl font-bold text-white mb-8 flex items-center gap-3">
+                    <ShoppingBag className="h-8 w-8 text-emerald-400" />
                     Your Shopping Cart
                 </h1>
 
                 <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
                     <section className="lg:col-span-7">
                         {cart?.items?.length > 0 ? (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                                <ul role="list" className="divide-y divide-gray-200">
+                            <div className="bg-black/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
+                                <ul role="list" className="divide-y divide-white/10">
                                     {cart.items.map((item: any) => (
                                         <li key={item.id} className="p-6 flex gap-6">
-                                            <div className="flex-shrink-0 w-24 h-24 bg-gray-100 rounded-xl overflow-hidden border border-gray-100">
+                                            <div className="flex-shrink-0 w-24 h-24 bg-white/5 rounded-xl overflow-hidden border border-white/10">
                                                 {item.product.image ? (
                                                     <img
                                                         src={item.product.image}
@@ -81,21 +81,21 @@ export default function CartPage() {
                                                         className="w-full h-full object-center object-cover"
                                                     />
                                                 ) : (
-                                                    <div className="flex items-center justify-center h-full text-gray-300">No Img</div>
+                                                    <div className="flex items-center justify-center h-full text-slate-500">No Img</div>
                                                 )}
                                             </div>
 
                                             <div className="flex-1 flex flex-col justify-between">
                                                 <div className="flex justify-between">
-                                                    <h3 className="text-lg font-medium text-gray-900">
-                                                        <Link href={`/products/${item.product.id}`} className="hover:text-indigo-600 transition-colors">
+                                                    <h3 className="text-lg font-semibold text-white">
+                                                        <Link href={`/products/${item.product.id}`} className="hover:text-emerald-300 transition-colors">
                                                             {item.product.title}
                                                         </Link>
                                                     </h3>
-                                                    <p className="text-lg font-bold text-gray-900">${item.product.price}</p>
+                                                    <p className="text-lg font-bold text-white">${item.product.price}</p>
                                                 </div>
                                                 <div className="flex items-center justify-between mt-4">
-                                                    <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                                                    <div className="text-sm text-slate-300 bg-white/5 px-3 py-1 rounded-full border border-white/10">
                                                         Qty {item.quantity}
                                                     </div>
                                                     {/* Future: Add remove item button */}
@@ -106,13 +106,13 @@ export default function CartPage() {
                                 </ul>
                             </div>
                         ) : (
-                            <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-200">
-                                <div className="inline-block p-4 rounded-full bg-gray-100 mb-4">
-                                    <ShoppingBag className="h-8 w-8 text-gray-400" />
+                            <div className="text-center py-20 bg-black/70 rounded-2xl shadow-2xl border border-white/10">
+                                <div className="inline-block p-4 rounded-full bg-white/5 mb-4">
+                                    <ShoppingBag className="h-8 w-8 text-slate-400" />
                                 </div>
-                                <h3 className="text-lg font-medium text-gray-900">Your cart is empty</h3>
-                                <p className="text-gray-500 mb-6">Looks like you haven't added anything yet.</p>
-                                <Link href="/" className="btn-primary inline-flex items-center">
+                                <h3 className="text-lg font-semibold text-white">Your cart is empty</h3>
+                                <p className="text-slate-400 mb-6">Looks like you haven't added anything yet.</p>
+                                <Link href="/" className="inline-flex items-center px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-white font-bold shadow-lg shadow-emerald-500/20 hover:from-emerald-300 hover:to-cyan-300 transition-all">
                                     Start Shopping <ArrowRight className="ml-2 h-4 w-4" />
                                 </Link>
                             </div>
@@ -121,14 +121,14 @@ export default function CartPage() {
 
                     {/* Order summary */}
                     {cart?.items?.length > 0 && (
-                        <section className="mt-16 lg:mt-0 lg:col-span-5">
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:p-8">
-                                <h2 className="text-lg font-medium text-gray-900 mb-6">Order Summary</h2>
+                        <section className="mt-12 lg:mt-0 lg:col-span-5">
+                            <div className="bg-black/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 p-6 lg:p-8">
+                                <h2 className="text-lg font-semibold text-white mb-6">Order Summary</h2>
 
                                 <dl className="space-y-4">
-                                    <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-                                        <dt className="text-base font-bold text-gray-900">Order Total</dt>
-                                        <dd className="text-xl font-bold text-indigo-600">
+                                    <div className="flex items-center justify-between border-t border-white/10 pt-4">
+                                        <dt className="text-base font-bold text-white">Order Total</dt>
+                                        <dd className="text-xl font-bold text-emerald-300">
                                             ${cart.items.reduce((acc: number, item: any) => acc + (parseFloat(item.product.price) * item.quantity), 0).toFixed(2)}
                                         </dd>
                                     </div>
@@ -137,13 +137,13 @@ export default function CartPage() {
                                 <div className="mt-8 space-y-4">
                                     <button
                                         onClick={checkout}
-                                        className="w-full btn-primary flex justify-center py-4 text-lg shadow-xl shadow-indigo-500/20"
+                                        className="w-full flex justify-center py-4 text-lg rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-white font-bold shadow-xl shadow-emerald-500/20 hover:from-emerald-300 hover:to-cyan-300 transition-all"
                                     >
                                         Checkout Securely
                                     </button>
                                     <button
                                         onClick={clearCart}
-                                        className="w-full bg-white border border-gray-200 text-gray-600 rounded-xl py-3 font-medium hover:bg-gray-50 hover:text-red-500 transition-colors"
+                                        className="w-full bg-black/40 border border-white/10 text-slate-300 rounded-xl py-3 font-medium hover:bg-white/5 hover:text-rose-300 transition-colors"
                                     >
                                         Clear Cart
                                     </button>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -28,8 +29,16 @@ interface Product {
 
 export default function ProductCard({ product }: { product: Product }) {
     const { isAuthenticated } = useAuthStore();
+    const router = useRouter();
     const ratingValue = Number(product.rating ?? 0);
     const discountValue = Number(product.discount ?? 0);
+    const priceValue = Number(product.price ?? 0);
+    const hasDiscount = discountValue > 0 && priceValue > 0;
+    const discountedPrice = hasDiscount
+        ? priceValue * (1 - discountValue / 100)
+        : priceValue;
+    const formattedPrice = priceValue.toFixed(2);
+    const formattedDiscountedPrice = discountedPrice.toFixed(2);
 
     const addToCart = async (e: React.MouseEvent) => {
         e.preventDefault(); // Prevent link navigation
@@ -38,6 +47,17 @@ export default function ProductCard({ product }: { product: Product }) {
             await api.post('/cart/add/', { product_id: product.id, quantity: 1 });
             // Could add toast notification here
             alert("Added to cart!");
+        } catch (e) {
+            alert("Failed to add to cart");
+        }
+    };
+
+    const buyNow = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!isAuthenticated) return alert("Please login first");
+        try {
+            await api.post('/cart/add/', { product_id: product.id, quantity: 1 });
+            router.push('/cart');
         } catch (e) {
             alert("Failed to add to cart");
         }
@@ -110,19 +130,38 @@ export default function ProductCard({ product }: { product: Product }) {
                         {product.description || "No description provided."}
                     </p>
 
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50 gap-3">
                         <div>
                             <span className="block text-xs text-gray-400 font-medium uppercase tracking-wider">Price</span>
-                            <span className="text-xl font-bold text-gray-900">
-                                ${product.price}
-                            </span>
+                            {hasDiscount ? (
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-xl font-bold text-gray-900">
+                                        ${formattedDiscountedPrice}
+                                    </span>
+                                    <span className="text-sm font-semibold text-gray-400 line-through">
+                                        ${formattedPrice}
+                                    </span>
+                                </div>
+                            ) : (
+                                <span className="text-xl font-bold text-gray-900">
+                                    ${formattedPrice}
+                                </span>
+                            )}
                         </div>
-                        <button
-                            onClick={addToCart}
-                            className="p-3 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 shadow-sm hover:shadow-indigo-200 active:scale-95 group/btn"
-                        >
-                            <ShoppingCart className="h-5 w-5 group-hover/btn:animate-bounce" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={buyNow}
+                                className="px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all duration-300 shadow-sm active:scale-95"
+                            >
+                                Buy Now
+                            </button>
+                            <button
+                                onClick={addToCart}
+                                className="p-3 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 shadow-sm hover:shadow-indigo-200 active:scale-95 group/btn"
+                            >
+                                <ShoppingCart className="h-5 w-5 group-hover/btn:animate-bounce" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

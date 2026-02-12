@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
+import api from '@/lib/api';
 import { ShoppingCart, User, LogOut, Package, Menu, X, ChevronRight } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -20,6 +21,7 @@ export default function Navbar() {
     const [message, setMessage] = useState('');
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [cartCount, setCartCount] = useState(0);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -33,6 +35,23 @@ export default function Navbar() {
     useEffect(() => {
         initializeAuth();
     }, [initializeAuth]);
+
+    const fetchCartCount = async () => {
+        if (!isAuthenticated) {
+            setCartCount(0);
+            return;
+        }
+
+        try {
+            const { data } = await api.get('/cart/');
+            const totalCount = Array.isArray(data?.items)
+                ? data.items.reduce((acc: number, item: any) => acc + (Number(item.quantity) || 0), 0)
+                : 0;
+            setCartCount(totalCount);
+        } catch (error) {
+            setCartCount(0);
+        }
+    };
 
     // Show success message from URL params
     useEffect(() => {
@@ -52,6 +71,10 @@ export default function Navbar() {
     useEffect(() => {
         setMobileMenuOpen(false);
     }, [pathname]);
+
+    useEffect(() => {
+        fetchCartCount();
+    }, [isAuthenticated, pathname]);
 
     const handleLogout = () => {
         logout();
@@ -162,9 +185,11 @@ export default function Navbar() {
                                 textColor, hoverColor
                             )}>
                                 <ShoppingCart className="h-6 w-6" suppressHydrationWarning />
-                                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                                    2
-                                </span>
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold h-4 min-w-4 px-1 flex items-center justify-center rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                                        {cartCount}
+                                    </span>
+                                )}
                             </Link>
 
                             {isAuthenticated ? (
@@ -221,9 +246,11 @@ export default function Navbar() {
                         <div className="flex items-center md:hidden gap-4">
                             <Link href="/cart" className={twMerge("relative", textColor)}>
                                 <ShoppingCart className="h-6 w-6" suppressHydrationWarning />
-                                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full">
-                                    2
-                                </span>
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold h-4 min-w-4 px-1 flex items-center justify-center rounded-full">
+                                        {cartCount}
+                                    </span>
+                                )}
                             </Link>
                             <button
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
