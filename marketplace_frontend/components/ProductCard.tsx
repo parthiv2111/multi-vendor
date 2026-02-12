@@ -4,7 +4,12 @@ import Link from 'next/link';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
-import { clsx } from 'clsx';
+
+interface CategoryDetail {
+    id: number;
+    title: string;
+    slug: string;
+}
 
 interface Product {
     id: number;
@@ -13,11 +18,18 @@ interface Product {
     image: string;
     vendor: number;
     category?: number;
-    rating?: number; // Added optional rating for UI
+    category_detail?: CategoryDetail;
+    sub_category?: number | null;
+    sub_category_detail?: CategoryDetail | null;
+    description?: string | null;
+    rating?: number;
+    discount?: number;
 }
 
 export default function ProductCard({ product }: { product: Product }) {
     const { isAuthenticated } = useAuthStore();
+    const ratingValue = Number(product.rating ?? 0);
+    const discountValue = Number(product.discount ?? 0);
 
     const addToCart = async (e: React.MouseEvent) => {
         e.preventDefault(); // Prevent link navigation
@@ -55,12 +67,14 @@ export default function ProductCard({ product }: { product: Product }) {
                         </button>
                     </div>
 
-                    {/* Badges/Tags (Mock) */}
-                    <div className="absolute top-3 left-3">
-                        <span className="bg-white/90 backdrop-blur-md text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm text-gray-800 border border-white/50">
-                            Premium
-                        </span>
-                    </div>
+                    {/* Badges */}
+                    {discountValue > 0 && (
+                        <div className="absolute top-3 left-3">
+                            <span className="bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">
+                                {discountValue}% OFF
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Content */}
@@ -71,19 +85,29 @@ export default function ProductCard({ product }: { product: Product }) {
                         </h3>
                     </div>
 
+                    <div className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">
+                        {product.category_detail?.title || "Uncategorized"}
+                        {product.sub_category_detail?.title ? ` / ${product.sub_category_detail.title}` : ""}
+                    </div>
+
                     <div className="flex items-center gap-1 mb-3">
                         <div className="flex text-yellow-400">
-                            <Star className="h-3 w-3 fill-current" />
-                            <Star className="h-3 w-3 fill-current" />
-                            <Star className="h-3 w-3 fill-current" />
-                            <Star className="h-3 w-3 fill-current" />
-                            <Star className="h-3 w-3 fill-current" />
+                            {[0, 1, 2, 3, 4].map((index) => (
+                                <Star
+                                    key={index}
+                                    className={
+                                        ratingValue >= index + 1
+                                            ? "h-3 w-3 fill-current"
+                                            : "h-3 w-3 text-gray-200"
+                                    }
+                                />
+                            ))}
                         </div>
-                        <span className="text-xs text-gray-400 font-medium">(4.8)</span>
+                        <span className="text-xs text-gray-400 font-medium">({ratingValue.toFixed(1)})</span>
                     </div>
 
                     <p className="text-sm text-gray-500 mb-4 line-clamp-2 leading-relaxed">
-                        Experience premium quality with this verified product. Limited stock available.
+                        {product.description || "No description provided."}
                     </p>
 
                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">

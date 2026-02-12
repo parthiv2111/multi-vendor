@@ -61,6 +61,9 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         </div>
     );
 
+    const ratingValue = Number(product.rating ?? 0);
+    const discountValue = Number(product.discount ?? 0);
+
     return (
         <div className="bg-white min-h-screen">
             <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -89,33 +92,44 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     {/* Product Info */}
                     <div className="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
                         <div className="mb-6">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 mb-4">
-                                Verified Vendor
-                            </span>
+                            <div className="flex flex-wrap items-center gap-2 mb-4">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                                    Verified Vendor
+                                </span>
+                                {discountValue > 0 && (
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-rose-500 text-white">
+                                        {discountValue}% OFF
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-2">
+                                {product.category_detail?.title || "Uncategorized"}
+                                {product.sub_category_detail?.title ? ` / ${product.sub_category_detail.title}` : ""}
+                            </p>
                             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900 mb-2">{product.title}</h1>
 
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-wrap items-center gap-4">
                                 <p className="text-3xl text-indigo-600 font-bold">${product.price}</p>
-                                <div className="flex items-center pl-4 border-l border-gray-200">
+                                <div className="flex items-center gap-2">
                                     <div className="flex items-center">
                                         {[0, 1, 2, 3, 4].map((rating) => (
                                             <Star
                                                 key={rating}
                                                 className={clsx(
-                                                    rating < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300',
+                                                    ratingValue >= rating + 1 ? 'text-yellow-400 fill-current' : 'text-gray-300',
                                                     'h-5 w-5 flex-shrink-0'
                                                 )}
                                                 aria-hidden="true"
                                             />
                                         ))}
                                     </div>
-                                    <p className="ml-2 text-sm text-gray-500">117 reviews</p>
+                                    <p className="text-sm text-gray-500">{ratingValue.toFixed(1)} rating</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="prose prose-indigo text-gray-500 mb-8">
-                            <div dangerouslySetInnerHTML={{ __html: product.description }} />
+                            <div dangerouslySetInnerHTML={{ __html: product.description || "No description provided." }} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 mb-8">

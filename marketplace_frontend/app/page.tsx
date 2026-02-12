@@ -105,8 +105,8 @@ export default function Home() {
       {/* Product Grid */}
       < section className="w-full px-4 sm:px-6 lg:px-8" >
         <div className="flex flex-col sm:flex-row items-center justify-between mb-10 gap-4">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">Trending Now</h2>
-          <Link href="/products" className="group flex items-center gap-1 text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Trending Now</h2>
+          <Link href="/products" className="group flex items-center gap-1 text-white font-semibold hover:text-white transition-colors">
             View all products <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

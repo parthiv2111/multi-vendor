@@ -205,11 +205,13 @@ export default function Navbar() {
                                     <button
                                         onClick={openRegisterModal}
                                         className={twMerge(
-                                            "px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 shadow-lg hover:-translate-y-0.5",
-                                            "bg-gradient-to-r from-emerald-400 to-cyan-400 text-black shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:from-emerald-300 hover:to-cyan-300"
+                                            "text-sm font-bold transition-colors px-4 py-2 rounded-lg",
+                                            isTransparent
+                                                ? "text-white hover:bg-white/10"
+                                                : "text-slate-200 hover:bg-white/5"
                                         )}
                                     >
-                                        Sign up
+                                        Sign Up
                                     </button>
                                 </div>
                             )}
@@ -297,9 +299,9 @@ export default function Navbar() {
                             </button>
                             <button
                                 onClick={openRegisterModal}
-                                className="w-full flex justify-center items-center py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-black font-bold hover:from-emerald-300 hover:to-cyan-300 transition-colors shadow-lg shadow-emerald-500/20"
+                                className="w-full flex justify-center items-center py-3 rounded-xl border border-white/10 text-slate-200 font-bold hover:bg-white/5 transition-colors"
                             >
-                                Sign up
+                                Sign Up
                             </button>
                         </div>
                     )}
