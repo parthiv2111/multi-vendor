@@ -10,6 +10,7 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(true);
     const [error, setError] = useState('');
     const router = useRouter();
     const { login, isLoading } = useAuthStore();
@@ -18,10 +19,10 @@ export default function LoginPage() {
         e.preventDefault();
         setError('');
 
-        const result = await login(email, password);
+        const result = await login(email, password, rememberMe);
 
         if (result.success) {
-            router.push('/');
+            router.push(result.redirectUrl || '/');
         } else {
             setError(result.error || 'Login failed');
         }
@@ -119,6 +120,19 @@ export default function LoginPage() {
                                     </button>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="flex items-center animate-fade-in-up animation-delay-375">
+                            <input
+                                id="remember-me"
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                                className="w-4 h-4 rounded border-slate-800 text-emerald-400 focus:ring-emerald-400 cursor-pointer bg-black/40"
+                            />
+                            <label htmlFor="remember-me" className="ml-3 text-sm font-medium text-slate-300 cursor-pointer">
+                                Remember me for 30 days
+                            </label>
                         </div>
 
                         <button

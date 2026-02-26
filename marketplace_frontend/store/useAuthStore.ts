@@ -16,10 +16,12 @@ interface AuthState {
     refreshToken: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    rememberMe: boolean;
+    login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string; redirectUrl?: string }>;
     logout: () => void;
     fetchUser: () => Promise<void>;
     initializeAuth: () => Promise<void>;
+    setRememberMe: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -30,8 +32,9 @@ export const useAuthStore = create<AuthState>()(
             refreshToken: null,
             isAuthenticated: false,
             isLoading: false,
+            rememberMe: true,
 
-            login: async (email, password) => {
+            login: async (email, password, rememberMe = true) => {
                 set({ isLoading: true });
                 try {
                     const data = await authAPI.login(email, password);
@@ -39,18 +42,28 @@ export const useAuthStore = create<AuthState>()(
                         token: data.access,
                         refreshToken: data.refresh,
                         isAuthenticated: true,
-                        isLoading: false
+                        isLoading: false,
+                        rememberMe: rememberMe
                     });
 
                     // Fetch user details
                     try {
                         const userData = await authAPI.getCurrentUser();
                         set({ user: userData });
+
+                        // Determine redirect URL based on role
+                        let redirectUrl = '/';
+                        if (userData.role === 'SELLER') {
+                            redirectUrl = '/vendor/dashboard';
+                        } else if (userData.role === 'BUYER') {
+                            redirectUrl = '/customer/dashboard';
+                        }
+
+                        return { success: true, redirectUrl };
                     } catch (error) {
                         console.error("Failed to fetch user", error);
+                        return { success: true, redirectUrl: '/' };
                     }
-
-                    return { success: true };
                 } catch (error: any) {
                     set({ isLoading: false });
                     const errorMessage = error.response?.data?.detail || "Login failed";
@@ -62,8 +75,11 @@ export const useAuthStore = create<AuthState>()(
                 user: null,
                 token: null,
                 refreshToken: null,
-                isAuthenticated: false
+                isAuthenticated: false,
+                rememberMe: true
             }),
+
+            setRememberMe: (value: boolean) => set({ rememberMe: value }),
 
             fetchUser: async () => {
                 const { token } = get();
@@ -92,7 +108,8 @@ export const useAuthStore = create<AuthState>()(
                 token: state.token,
                 refreshToken: state.refreshToken,
                 user: state.user,
-                isAuthenticated: state.isAuthenticated
+                isAuthenticated: state.isAuthenticated,
+                rememberMe: state.rememberMe
             }),
         }
     )

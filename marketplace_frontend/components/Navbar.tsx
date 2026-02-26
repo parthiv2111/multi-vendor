@@ -171,9 +171,11 @@ export default function Navbar() {
                             {/* Desktop Nav */}
                             <div className="hidden md:ml-12 md:flex md:space-x-8">
                                 <NavLink href="/products" active={pathname === '/products'} isTransparent={isTransparent}>Products</NavLink>
-                                <NavLink href="/compare" active={pathname === '/compare'} isTransparent={isTransparent}>Compare</NavLink>
                                 {user?.role === 'SELLER' && (
-                                    <NavLink href="/dashboard" active={pathname === '/dashboard'} isTransparent={isTransparent}>Dashboard</NavLink>
+                                    <NavLink href="/vendor/dashboard" active={pathname === '/vendor/dashboard'} isTransparent={isTransparent}>Vendor Dashboard</NavLink>
+                                )}
+                                {user?.role === 'BUYER' && (
+                                    <NavLink href="/customer/dashboard" active={pathname === '/customer/dashboard'} isTransparent={isTransparent}>Dashboard</NavLink>
                                 )}
                             </div>
                         </div>
@@ -290,9 +292,11 @@ export default function Navbar() {
 
                 <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
                     <MobileNavLink href="/products">Products</MobileNavLink>
-                    <MobileNavLink href="/compare">Compare Prices</MobileNavLink>
                     {user?.role === 'SELLER' && (
-                        <MobileNavLink href="/dashboard">Vendor Dashboard</MobileNavLink>
+                        <MobileNavLink href="/vendor/dashboard">Vendor Dashboard</MobileNavLink>
+                    )}
+                    {user?.role === 'BUYER' && (
+                        <MobileNavLink href="/customer/dashboard">Dashboard</MobileNavLink>
                     )}
                 </div>
 

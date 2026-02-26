@@ -27,7 +27,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
 
     if (result.success) {
       onClose();
-      router.push('/');
+      router.push(result.redirectUrl || '/');
     } else {
       setError(result.error || 'Login failed');
     }

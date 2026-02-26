@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
-import { Search } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Product {
     id: number;
@@ -14,17 +14,41 @@ interface Product {
     category?: number;
 }
 
+interface PaginatedResponse {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: Product[];
+}
+
 export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const [hasNext, setHasNext] = useState(false);
+    const [hasPrev, setHasPrev] = useState(false);
+    const pageSize = 12;
 
-    const fetchProducts = async (query = '') => {
+    const fetchProducts = async (query = '', page = 1) => {
         setLoading(true);
         try {
             const encodedQuery = encodeURIComponent(query);
-            const { data } = await api.get(`/products/?search=${encodedQuery}&page_size=100`);
-            setProducts(data.results || data);
+            const { data } = await api.get(`/products/?search=${encodedQuery}&page=${page}&page_size=${pageSize}`);
+
+            // Handle both paginated and non-paginated responses
+            if (data.results) {
+                setProducts(data.results);
+                setTotalCount(data.count || 0);
+                setHasNext(!!data.next);
+                setHasPrev(!!data.previous);
+            } else {
+                setProducts(data);
+                setTotalCount(data.length);
+                setHasNext(false);
+                setHasPrev(false);
+            }
         } catch (error) {
             console.error('Failed to fetch products', error);
         } finally {
@@ -33,13 +57,32 @@ export default function ProductsPage() {
     };
 
     useEffect(() => {
-        fetchProducts();
+        fetchProducts('', 1);
     }, []);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        fetchProducts(search);
+        setCurrentPage(1);
+        fetchProducts(search, 1);
     };
+
+    const handleNextPage = () => {
+        const nextPage = currentPage + 1;
+        setCurrentPage(nextPage);
+        fetchProducts(search, nextPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handlePrevPage = () => {
+        const prevPage = currentPage - 1;
+        if (prevPage >= 1) {
+            setCurrentPage(prevPage);
+            fetchProducts(search, prevPage);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    const totalPages = Math.ceil(totalCount / pageSize);
 
     return (
         <div className="min-h-screen pt-28 pb-16">
@@ -70,20 +113,93 @@ export default function ProductsPage() {
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-                        {products.length > 0 ? (
-                            products.map((product) => (
-                                <ProductCard key={product.id} product={product} />
-                            ))
-                        ) : (
-                            <div className="col-span-full py-24 text-center rounded-3xl bg-white/5 border border-white/10">
-                                <h3 className="text-xl font-bold text-white mb-2">No products found</h3>
-                                <p className="text-slate-400 max-w-md mx-auto">
-                                    Try a different keyword or remove filters.
-                                </p>
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+                            {products.length > 0 ? (
+                                products.map((product) => (
+                                    <ProductCard key={product.id} product={product} />
+                                ))
+                            ) : (
+                                <div className="col-span-full py-24 text-center rounded-3xl bg-white/5 border border-white/10">
+                                    <h3 className="text-xl font-bold text-white mb-2">No products found</h3>
+                                    <p className="text-slate-400 max-w-md mx-auto">
+                                        Try a different keyword or remove filters.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Pagination Controls */}
+                        {products.length > 0 && (
+                            <div className="mt-12 flex items-center justify-between">
+                                {/* Left Section - Results Info */}
+                                <div className="text-sm text-slate-400">
+                                    Showing <span className="font-semibold text-white">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+                                    <span className="font-semibold text-white">
+                                        {Math.min(currentPage * pageSize, totalCount)}
+                                    </span>{' '}
+                                    of <span className="font-semibold text-white">{totalCount}</span> products
+                                </div>
+
+                                {/* Middle Section - Page Numbers */}
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={handlePrevPage}
+                                        disabled={!hasPrev}
+                                        className="p-2 rounded-lg border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronLeft className="h-5 w-5" />
+                                    </button>
+
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                                            let pageNum;
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i;
+                                            } else {
+                                                pageNum = currentPage - 2 + i;
+                                            }
+
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => {
+                                                        setCurrentPage(pageNum);
+                                                        fetchProducts(search, pageNum);
+                                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                    }}
+                                                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${currentPage === pageNum
+                                                        ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 text-white'
+                                                        : 'border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <button
+                                        onClick={handleNextPage}
+                                        disabled={!hasNext}
+                                        className="p-2 rounded-lg border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronRight className="h-5 w-5" />
+                                    </button>
+                                </div>
+
+                                {/* Right Section - Page Info */}
+                                <div className="text-sm text-slate-400">
+                                    Page <span className="font-semibold text-white">{currentPage}</span> of{' '}
+                                    <span className="font-semibold text-white">{totalPages}</span>
+                                </div>
                             </div>
                         )}
-                    </div>
+                    </>
                 )}
             </div>
         </div>

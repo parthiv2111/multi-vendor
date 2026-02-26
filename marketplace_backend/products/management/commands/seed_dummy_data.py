@@ -45,67 +45,80 @@ class Command(BaseCommand):
         categories = self._ensure_categories_and_subcategories()
         vendors = self._ensure_vendors()
 
+        # Distribute products evenly across vendors
+        products_per_vendor = count // len(vendors)
+        remaining_products = count % len(vendors)
+
         created = 0
-        for index in range(1, count + 1):
-            category = random.choice(categories)
-            subcategories = list(category.subcategories.all())
-            sub_category = random.choice(
-                subcategories) if subcategories else None
-            vendor = random.choice(vendors)
+        product_index = 1
+        for vendor_idx, vendor in enumerate(vendors):
+            # Distribute remaining products to first vendors
+            if vendor_idx < remaining_products:
+                vendor_product_count = products_per_vendor + 1
+            else:
+                vendor_product_count = products_per_vendor
 
-            title_seed = random.choice([
-                "Nova",
-                "Pulse",
-                "Vertex",
-                "Lumen",
-                "Astra",
-                "Orbit",
-                "Solace",
-                "Flux",
-            ])
-            name_seed = random.choice([
-                "Smart Speaker",
-                "Wireless Headset",
-                "Travel Backpack",
-                "Fitness Tracker",
-                "Desk Lamp",
-                "Gaming Mouse",
-                "Bluetooth Keyboard",
-                "Noise Cancelling Earbuds",
-                "Coffee Grinder",
-                "Yoga Mat",
-            ])
-            title = f"{title_seed} {name_seed} {index}"
-            slug = f"{slugify(title)}-{index}"
+            for _ in range(vendor_product_count):
+                category = random.choice(categories)
+                subcategories = list(category.subcategories.all())
+                sub_category = random.choice(
+                    subcategories) if subcategories else None
 
-            price_value = Decimal(str(random.randint(25, 700))) + Decimal(
-                f"0.{random.randint(0, 99):02d}"
-            )
-            discount_value = Decimal(
-                str(random.choice([0, 5, 10, 15, 20, 25, 30])))
-            rating_value = Decimal(str(random.randint(32, 50))) / Decimal("10")
+                title_seed = random.choice([
+                    "Nova",
+                    "Pulse",
+                    "Vertex",
+                    "Lumen",
+                    "Astra",
+                    "Orbit",
+                    "Solace",
+                    "Flux",
+                ])
+                name_seed = random.choice([
+                    "Smart Speaker",
+                    "Wireless Headset",
+                    "Travel Backpack",
+                    "Fitness Tracker",
+                    "Desk Lamp",
+                    "Gaming Mouse",
+                    "Bluetooth Keyboard",
+                    "Noise Cancelling Earbuds",
+                    "Coffee Grinder",
+                    "Yoga Mat",
+                ])
+                title = f"{title_seed} {name_seed} {product_index}"
+                slug = f"{slugify(title)}-{product_index}"
+                product_index += 1
 
-            product, was_created = Product.objects.get_or_create(
-                slug=slug,
-                defaults={
-                    "category": category,
-                    "sub_category": sub_category,
-                    "vendor": vendor,
-                    "title": title,
-                    "description": (
-                        f"{name_seed} built for modern shoppers. "
-                        "Demo listing for multi-vendor marketplace."
-                    ),
-                    "price": price_value,
-                    "rating": rating_value,
-                    "discount": discount_value,
-                    "stock": random.randint(0, 150),
-                    "active": True,
-                },
-            )
+                price_value = Decimal(str(random.randint(25, 700))) + Decimal(
+                    f"0.{random.randint(0, 99):02d}"
+                )
+                discount_value = Decimal(
+                    str(random.choice([0, 5, 10, 15, 20, 25, 30])))
+                rating_value = Decimal(
+                    str(random.randint(32, 50))) / Decimal("10")
 
-            if was_created:
-                created += 1
+                product, was_created = Product.objects.get_or_create(
+                    slug=slug,
+                    defaults={
+                        "category": category,
+                        "sub_category": sub_category,
+                        "vendor": vendor,
+                        "title": title,
+                        "description": (
+                            f"{name_seed} built for modern shoppers. "
+                            "Demo listing for multi-vendor marketplace."
+                        ),
+                        "price": price_value,
+                        "rating": rating_value,
+                        "discount": discount_value,
+                        "stock": random.randint(0, 150),
+                        "active": True,
+                    },
+                )
+
+                if was_created:
+                    created += 1
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -146,21 +159,29 @@ class Command(BaseCommand):
         return categories
 
     def _ensure_vendors(self):
-        vendor_names = [
-            "Nova Goods",
-            "Bright Cart",
-            "Vertex Supply",
-            "Skyline Market",
-            "Pulse Outfitters",
+        vendor_configs = [
+            {
+                "email": "seller12@yopmail.com",
+                "username": "seller12",
+                "store_name": "Seller 12 Store",
+            },
+            {
+                "email": "seller13@yopmail.com",
+                "username": "seller13",
+                "store_name": "Seller 13 Store",
+            },
+            {
+                "email": "seller14@yopmail.com",
+                "username": "seller14",
+                "store_name": "Seller 14 Store",
+            },
         ]
         vendors = []
-        for index, store_name in enumerate(vendor_names, start=1):
-            email = f"demo-seller{index}@example.com"
-            username = f"demo_seller_{index}"
+        for config in vendor_configs:
             user, _ = User.objects.get_or_create(
-                email=email,
+                email=config["email"],
                 defaults={
-                    "username": username,
+                    "username": config["username"],
                     "role": User.Role.SELLER,
                     "is_verified": True,
                 },
@@ -173,8 +194,8 @@ class Command(BaseCommand):
                 user_id=user.id,
                 defaults={
                     "user": user,
-                    "store_name": store_name,
-                    "description": f"{store_name} demo vendor.",
+                    "store_name": config["store_name"],
+                    "description": f"{config['store_name']} demo vendor.",
                     "is_verified": True,
                     "rating": Decimal("4.65"),
                 },
@@ -186,17 +207,25 @@ class Command(BaseCommand):
         Product.objects.filter(slug__startswith="demo-").delete()
         Product.objects.filter(title__startswith="Demo ").delete()
         Vendor.objects.filter(store_name__in=[
-            "Nova Goods", "Bright Cart", "Vertex Supply", "Skyline Market", "Pulse Outfitters"
+            "Seller 12 Store", "Seller 13 Store", "Seller 14 Store"
         ]).delete()
-        Vendor.objects.filter(user__email__startswith="demo-seller").delete()
-        User.objects.filter(email__startswith="demo-seller").delete()
+        Vendor.objects.filter(user__email__in=[
+            "seller12@yopmail.com", "seller13@yopmail.com", "seller14@yopmail.com"
+        ]).delete()
+        User.objects.filter(email__in=[
+            "seller12@yopmail.com", "seller13@yopmail.com", "seller14@yopmail.com"
+        ]).delete()
 
     def _clear_all_products(self):
         Product.objects.all().delete()
         SubCategory.objects.all().delete()
         Category.objects.all().delete()
         Vendor.objects.filter(store_name__in=[
-            "Nova Goods", "Bright Cart", "Vertex Supply", "Skyline Market", "Pulse Outfitters"
+            "Seller 12 Store", "Seller 13 Store", "Seller 14 Store"
         ]).delete()
-        Vendor.objects.filter(user__email__startswith="demo-seller").delete()
-        User.objects.filter(email__startswith="demo-seller").delete()
+        Vendor.objects.filter(user__email__in=[
+            "seller12@yopmail.com", "seller13@yopmail.com", "seller14@yopmail.com"
+        ]).delete()
+        User.objects.filter(email__in=[
+            "seller12@yopmail.com", "seller13@yopmail.com", "seller14@yopmail.com"
+        ]).delete()
